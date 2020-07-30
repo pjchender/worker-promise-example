@@ -1,5 +1,4 @@
 const { Worker, isMainThread, workerData } = require('worker_threads');
-const job = require('./job');
 
 main();
 
@@ -10,29 +9,13 @@ function getSeconds() {
 function main() {
   console.log('[Main Thread] ------ start ------', getSeconds());
 
-  console.log(
-    '[Main Thread - sync] ------ start computation ------',
-    getSeconds()
-  );
-  const i = job(10000001);
-  console.log(
-    `[Main Thread - sync] ------ after computation ------ (${i})`,
-    getSeconds()
-  );
-
   console.log('[Main Thread - sync] ------ start worker ------', getSeconds());
-  worker();
+  worker(5000000);
+  worker(5000000);
+  worker(5000000);
   console.log('[Main Thread - sync] ------ end worker ------', getSeconds());
 
-  asyncFunc(10000002).then((data) =>
-    console.log(`[Main Thread - asyncFunc.then 1] (${data})`, getSeconds())
-  );
-
   console.log('[Main Thread - sync] ------ middle ------', getSeconds());
-
-  asyncFunc(10000003).then((data) =>
-    console.log(`[Main Thread - asyncFunc.then 2] (${data})`, getSeconds())
-  );
 
   setTimeout(
     () =>
@@ -45,8 +28,8 @@ function main() {
   console.log('[Main Thread] ------ end ------', getSeconds());
 }
 
-function worker() {
-  const worker = new Worker('./worker.js', { workerData: 'Hello, world!' });
+function worker(loop) {
+  const worker = new Worker('./worker.js', { workerData: loop });
   worker.on('message', (data) =>
     console.log(`[Main Thread] onMessage(${data})`, getSeconds())
   );
@@ -55,16 +38,4 @@ function worker() {
     if (code !== 0)
       console.log(new Error(`Worker stopped with exit code ${code}`));
   });
-}
-
-async function asyncFunc(loop) {
-  const i = await new Promise((resolve) => {
-    console.log(`[Main Thread - asyncFunc in Promise] (${loop})`, getSeconds());
-    resolve(loop);
-  });
-
-  console.log(`[Main Thread - asyncFunc after await] (${loop})`, getSeconds());
-  const data = job(i);
-
-  return data;
 }

@@ -36,7 +36,7 @@ async function asyncFn() {
 function promiseFn() {
   return new Promise((resolve) => {
     console.log(`[worker-thread] - in promise`, getSeconds());
-    const i = job(5000004);
+    const i = job(workerData);
 
     resolve(i);
   }).then((taskNumber) => {
